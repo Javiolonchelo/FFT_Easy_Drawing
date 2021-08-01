@@ -1,24 +1,29 @@
 # Shrek LAB
 
-Shrek LAB es un entorno de procesado de imágenes basado en MATLAB que permite generar dibujos por medio de la FFT.
-
-## Tabla de contenidos
-
-- [Tabla de contenidos](#tabla-de-contenidos)
-- [Motivaciones](#motivaciones)
-- [¿Qué es la FFT?](#-qué-es-la-fft-)
-
-## Motivaciones
+## Introducción
 
 Desde hace unos años me han fascinado los vídeos de divulgadores de conocimiento en internet, como [QuantumFracture](https://www.youtube.com/user/QuantumFracture), [3Blue1Brown](https://www.youtube.com/c/3blue1brown), [Lemnismath](https://www.youtube.com/channel/UC-ihtKdODqNE7iPISJD3DnA) o incluso [Arremetes](https://www.youtube.com/channel/UCIw1j0fGzLJoOWpIbXihLKw).
 
 Concretamente, el vídeo titulado [_But what is a Fourier series? From heat flow to drawing with circles_](https://www.youtube.com/watch?v=r6sGWTCMz2k&t=372s) es aquel que me motivó a intentar hacer accesible la potencia de la FFT a las personas que aún están adentrándose en este mundillo.
 
-## ¿Qué es la FFT?
+**Shrek LAB** es un entorno de procesado de imágenes basado en MATLAB que permite generar dibujos por medio de la FFT.
+
+## Tabla de contenidos
+
+- [Tabla de contenidos](#tabla-de-contenidos)
+- [Dependencias](#dependencias)
+- [Introducción](#introducción)
+- [Conceptos teóricos](#conceptos-teóricos)
+  - [¿Qué es la FFT?](#¿qué-es-la-fft)
+  - [¿Cómo se dibuja usando la FFT?](#¿cómo-se-dibuja-usando-la-fft)
+
+## Conceptos teóricos
+
+### ¿Qué es la FFT?
 
 La FFT (_Fast Fourier Transform_) es un algoritmo que implementa la DFT (_Discrete Fourier Transform_) de manera optimizada para el cálculo computacional. A pesar de tener muchas versiones, la más famosa fue la que desarrollaron James Cooley y John Tukey en 1965, conocida como [algoritmo Cooley-Tukey](https://en.wikipedia.org/wiki/Cooley%E2%80%93Tukey_FFT_algorithm). Muchos consideran este algoritmo como uno de los más importantes en el mundo moderno.
 
-## ¿Cómo se dibuja usando la FFT?
+### ¿Cómo se dibuja usando la FFT?
 
 El funcionamiento es más sencillo de lo que puede parecer (lo prometo).
 
@@ -46,3 +51,9 @@ radios       = abs(z_k);
 frecuencias  = (1:L) - L/2 - 1;
 fases        = angle(z_k);
 ```
+
+## Implementación en _software_
+
+### Dependencias
+
+Solo es necesario tener instalado [MATLAB](https://es.mathworks.com/products/matlab.html) junto con su [Image Processing Toolbox](https://www.mathworks.com/products/image.html).

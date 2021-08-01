@@ -5,9 +5,10 @@ close all force
 
 global STATE TH LEFT RIGHT aux0 aux1 aux2 aux3 aux4 I INVERTED
 
-step = 0.05;
-coeffMaxAmount = 50;
-minCoeff = 1;
+step = 0.001;
+coeffMaxAmount = 70;
+minCoeff = 60;
+loop = 1;
 
 %% Menú de inicio
 fig_inicio = uifigure('Position', ([810 390 320 90]));
@@ -107,12 +108,13 @@ switch STATE
         % Second Switch Statement
         switch STATE
             case 'CONTOUR_START'
+                clear STATE TH LEFT aux0 aux1 aux2 aux3 aux4 I INVERTED
                 C = cell2mat(bwboundaries(RIGHT));
-                
-                eachCircle = C(:, 2);
+
+                x = C(:, 2);
                 y = C(:, 1);
-                
-                M = (width / 2 - eachCircle) + 1i * (height / 2 - y);
+
+                M = (width / 2 - x) + 1i * (height / 2 - y);
                 r = 1:length(abs(M));
                 figure
                 plot(r, real(M), '.', 'Color', 'black')
@@ -158,9 +160,9 @@ switch STATE
                 
                 eje = 0:step:1;
                 L = length(0:step:2 * pi);
-                
-                eachCircle = 0:step:1;
-                
+
+                eachCircle = 0:10 * step:1;
+
                 circle = zeros(L, L);
                 circleBox = zeros(length(eachCircle), L, coeffMaxAmount);
                 
@@ -168,16 +170,19 @@ switch STATE
                 centreBox = zeros(L, coeffMaxAmount + 1); % Para incluir el origen
                 
                 contourLine = zeros(L, 1);
-                
-                for coeff = minCoeff:coeffMaxAmount % Una vez por coeficiente
-                    t = t + 1;
-                    
-                    for whole = 0:step:1 % Una vuelta completa
-                        cla
+
+                for coeff = 1:coeffMaxAmount % Una vez por coeficiente
+
+                    for whole = 0:step:loop % Tantas vueltas como indiue loop
+
+                        if minCoeff < coeff
+                            cla
+                            texto = 'Número de coeficientes: ' + string(t);
+                            text(0, height / 2, texto);
+                        end
+
                         whole_aux = round(whole / step + 1);
-                        texto = 'Número de coeficientes: ' + string(t);
-                        text(0, height / 2, texto);
-                        
+
                         % Centros (y radios)
                         if coeff ~= 1
                             centre(whole_aux) = sheet(coeff - 1, 2) * exp(1i * (sheet(coeff - 1, 1) * 2 * pi * whole + sheet(coeff - 1, 3)));
@@ -193,23 +198,29 @@ switch STATE
                                 circle = centreBox(whole_aux, eachCoeff - 1) + sheet(eachCoeff - 1, 2) * exp(1i * 2 * pi * eachCircle);
                                 circleBox(:, whole_aux, eachCoeff) = circle;
                             end
-                            
-                            plot(real(circleBox(round(eachCircle / step + 1), whole_aux, eachCoeff)), imag(circleBox(round(eachCircle / step + 1), whole_aux, eachCoeff)), 'Color', '#0c821a')
-                            
+
+                            if minCoeff < coeff
+                                plot(real(circleBox(round(eachCircle / (step*10) + 1), whole_aux, eachCoeff)), imag(circleBox(round(eachCircle / (step*10) + 1), whole_aux, eachCoeff)), 'Color', '#0c821a')
+                            end
+
                         end
                         
                         contourLine(whole_aux) = centreBox(whole_aux, coeff);
-                        
-                        plot(real(contourLine(1:whole_aux)), imag(contourLine(1:whole_aux)), '.', 'Color', 'red') % Centro de la última circunferencia
-                        plot(real(centreBox(whole_aux, 1:coeff - 1)), imag(centreBox(whole_aux, 1:coeff - 1)), '.', 'Color', 'blue') % Resto de centros
-                        plot(real(centreBox(whole_aux, 1:coeff)), imag(centreBox(whole_aux, 1:coeff)), 'Color', 'black') % Radios
-                        
-                        % Capturar gráfico y escribir en archivo
-                        frame = getframe(gcf);
-                        writeVideo(v, frame);
-                        
+
+                        if minCoeff < coeff
+                            plot(real(contourLine(1:whole_aux)), imag(contourLine(1:whole_aux)), '.', 'Color', 'red') % Centro de la última circunferencia
+                            plot(real(centreBox(whole_aux, 1:coeff - 1)), imag(centreBox(whole_aux, 1:coeff - 1)), '.', 'Color', 'blue') % Resto de centros
+                            plot(real(centreBox(whole_aux, 1:coeff)), imag(centreBox(whole_aux, 1:coeff)), 'Color', 'black') % Radios
+
+                            % Capturar gráfico y escribir en archivo
+                            frame = getframe(gcf);
+                            writeVideo(v, frame);
+                        end
+
                     end
-                    
+
+                    t = t + 1;
+
                 end
                 
                 close(v);
