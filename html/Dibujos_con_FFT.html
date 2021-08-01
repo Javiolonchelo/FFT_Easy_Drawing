@@ -1,0 +1,755 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Dibujos_con_FFT</title><meta name="generator" content="MATLAB 9.9"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-07-31"><meta name="DC.source" content="Dibujos_con_FFT.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Pre&aacute;mbulo</a></li><li><a href="#2">Men&uacute; de inicio</a></li><li><a href="#3">Escoger acci&oacute;n principal</a></li><li><a href="#6">UI</a></li><li><a href="#8">Representaci&oacute;n y generaci&oacute;n del v&iacute;deo</a></li><li><a href="#11">IRQs</a></li><li><a href="#12">Other functions</a></li></ul></div><h2 id="1">Pre&aacute;mbulo</h2><pre class="codeinput">clear
+clc
+close <span class="string">all</span> <span class="string">force</span>
+
+<span class="keyword">global</span> STATE TH LEFT RIGHT aux0 aux1 aux2 aux3 aux4 I INVERTED
+
+step = 0.05;
+coeffMaxAmount = 50;
+minCoeff = 1;
+</pre><h2 id="2">Men&uacute; de inicio</h2><pre class="codeinput">fig_inicio = uifigure(<span class="string">'Position'</span>, ([810 390 320 90]));
+
+<span class="comment">% TEXT</span>
+lbl = uilabel(fig_inicio, <span class="string">'Position'</span>, [20 50 300 30], <span class="keyword">...</span>
+    <span class="string">'Text'</span>, <span class="string">'&iexcl;Bienvenido! Escoge el m&eacute;todo que desees aplicar.'</span>);
+lbl.WordWrap = <span class="string">'on'</span>;
+
+<span class="comment">% BUTTONS</span>
+btn_details = uibutton(fig_inicio, <span class="string">'Text'</span>, <span class="string">'Detalles'</span>, <span class="keyword">...</span>
+    <span class="string">'Position'</span>, [20, 15, 75, 22], <span class="keyword">...</span>
+    <span class="string">'ButtonPushedFcn'</span>, @(btn, event) btn_details_irq(fig_inicio));
+btn_contour = uibutton(fig_inicio, <span class="string">'Text'</span>, <span class="string">'Contorno'</span>, <span class="keyword">...</span>
+    <span class="string">'Position'</span>, [110, 15, 75, 22], <span class="keyword">...</span>
+    <span class="string">'ButtonPushedFcn'</span>, @(btn, event) btn_contour_irq(fig_inicio));
+btn_exit = uibutton(fig_inicio, <span class="string">'Text'</span>, <span class="string">'Salir'</span>, <span class="keyword">...</span>
+    <span class="string">'Position'</span>, [220, 15, 75, 22], <span class="keyword">...</span>
+    <span class="string">'ButtonPushedFcn'</span>, @(btn, event) btn_exit_irq(fig_inicio));
+
+<span class="comment">% Waiting...</span>
+waitfor(fig_inicio)
+</pre><h2 id="3">Escoger acci&oacute;n principal</h2><pre class="codeinput"><span class="keyword">switch</span> STATE
+    <span class="keyword">case</span> <span class="string">'DETAILS'</span>
+    <span class="keyword">case</span> <span class="string">'CONTOUR'</span>
+</pre><pre class="codeinput">        INVERTED = false;
+        TH = 127;
+        STATE = 0;
+</pre><p><img src="Dibujos_con_FFT_eq17467035999183504765.png" alt="$$e^{\pi i} + 1 = 0$$"></p><pre class="codeinput">        File = [<span class="string">'Images/'</span> uigetfile(<span class="string">'Images/*.jpg'</span>)];
+        File(end-4:end);
+        I = rgb2gray(imread(File));
+        LEFT = I;
+        width = length(I(1, :));
+        height = length(I(:, 1));
+        RIGHT = I &gt; TH;
+        RIGHT = imfill(RIGHT, <span class="string">'holes'</span>);
+        aux0 = RIGHT;
+        aux1 = zeros(height, width);
+        aux2 = zeros(height, width);
+        aux3 = zeros(height, width);
+        aux4 = zeros(height, width);
+
+        fig_contour = figure(<span class="string">'Position'</span>, ([200 200 1400 500]));
+        showImages(fig_contour);
+</pre><h2 id="6">UI</h2><pre class="codeinput">        h = uifigure(<span class="string">'Position'</span>, ([700 700 550 250]));
+
+        <span class="comment">% SLIDERS</span>
+        <span class="comment">% TH</span>
+        sld = uislider(h, <span class="string">'Position'</span>, [15, 45, 200, 3], <span class="keyword">...</span>
+            <span class="string">'ValueChangingFcn'</span>, @(sld, event) sld_irq(event, fig_contour));
+        sld.Limits = [0 255];
+        sld.Value = 127;
+        <span class="comment">% White Bars</span>
+        sld_1 = uislider(h, <span class="string">'Position'</span>, [200, 200, 300, 3], <span class="keyword">...</span>
+            <span class="string">'ValueChangingFcn'</span>, @(sld, event) sld_1_irq(event, height, fig_contour));
+        sld_2 = uislider(h, <span class="string">'Position'</span>, [200, 170, 300, 3], <span class="keyword">...</span>
+            <span class="string">'ValueChangingFcn'</span>, @(sld, event) sld_2_irq(event, height, fig_contour));
+        sld_3 = uislider(h, <span class="string">'Position'</span>, [200, 140, 300, 3], <span class="keyword">...</span>
+            <span class="string">'ValueChangingFcn'</span>, @(sld, event) sld_3_irq(event, width, fig_contour));
+        sld_4 = uislider(h, <span class="string">'Position'</span>, [200, 110, 300, 3], <span class="keyword">...</span>
+            <span class="string">'ValueChangingFcn'</span>, @(sld, event) sld_4_irq(event, width, fig_contour));
+
+        sld_1.Value = 0; sld_1.Limits = [0 100];
+        sld_2.Value = 0; sld_2.Limits = [0 100];
+        sld_3.Value = 0; sld_3.Limits = [0 100];
+        sld_4.Value = 0; sld_4.Limits = [0 100];
+
+        <span class="comment">% TEXT</span>
+        lbl = uilabel(h, <span class="string">'Position'</span>, [245 25 180 30], <span class="keyword">...</span>
+            <span class="string">'Text'</span>, <span class="string">'La imagen rellena no debe tener huecos de color negro'</span>);
+        lbl.WordWrap = <span class="string">'on'</span>;
+
+        <span class="comment">% BUTTONS</span>
+        btn_start = uibutton(h, <span class="string">'Text'</span>, <span class="string">'Empezar'</span>, <span class="keyword">...</span>
+            <span class="string">'Position'</span>, [435, 30, 100, 22], <span class="keyword">...</span>
+            <span class="string">'ButtonPushedFcn'</span>, @(btn, event) btn_start_irq(fig_contour));
+        btn_inverted = uibutton(h, <span class="string">'Text'</span>, <span class="string">'Invertir'</span>, <span class="keyword">...</span>
+            <span class="string">'Position'</span>, [30, 150, 100, 22], <span class="keyword">...</span>
+            <span class="string">'ButtonPushedFcn'</span>, @(btn, event) btn_inverted_irq(fig_contour));
+
+        <span class="comment">% Waiting...</span>
+        waitfor(fig_contour)
+        close(h)
+
+        <span class="comment">% Second Switch Statement</span>
+        <span class="keyword">switch</span> STATE
+            <span class="keyword">case</span> <span class="string">'CONTOUR_START'</span>
+</pre><pre class="codeinput">                C = cell2mat(bwboundaries(RIGHT));
+
+                eachCircle = C(:, 2);
+                y = C(:, 1);
+
+                M = (width / 2 - eachCircle) + 1i * (height / 2 - y);
+                r = 1:length(abs(M));
+                figure
+                plot(r, real(M), <span class="string">'.'</span>, <span class="string">'Color'</span>, <span class="string">'black'</span>)
+                hold <span class="string">on</span>
+                plot(r, imag(M), <span class="string">'.'</span>, <span class="string">'Color'</span>, <span class="string">'red'</span>)
+                hold <span class="string">off</span>
+                title(<span class="string">'Parte real e imaginaria'</span>)
+                axis <span class="string">equal</span>
+
+                H = fftshift(fft(M));
+                L = length(H);
+                H = H / L;
+
+                figure
+                plot(abs(H))
+                title(<span class="string">'FFT shifted'</span>)
+
+                <span class="keyword">if</span> mod(L, 2) == 1
+                    K = (1:L)' - L / 2 - 1/2;
+                <span class="keyword">else</span>
+                    K = (1:L)' - L / 2 - 1;
+                <span class="keyword">end</span>
+
+                sheet = [K, abs(H), angle(H)];
+                sheet = sortCoeff(sheet);
+                File = File(1:end - 4);
+                writematrix(sheet, strcat(File, <span class="string">'.xls'</span>))
+</pre><h2 id="8">Representaci&oacute;n y generaci&oacute;n del v&iacute;deo</h2><pre class="codeinput">                p = figure;
+                set(gcf, <span class="string">'Position'</span>, [0 0 1080 1920])
+                hold <span class="string">on</span>; grid <span class="string">on</span>; box <span class="string">on</span>; axis <span class="string">equal</span>
+                set(gca, <span class="string">'xlim'</span>, [-width * 0.6 width * 0.6], <span class="string">'ylim'</span>, [-height * 0.6 height * 0.6])
+                <span class="comment">% Create and open video writer object</span>
+                v = VideoWriter(<span class="string">'tercera_prueba.mp4'</span>, <span class="string">'MPEG-4'</span>);
+                v.Quality = 100;
+                v.FrameRate = 120;
+                open(v);
+                t = 0;
+                aux = 0;
+
+                <span class="comment">% Allocating memory for saved data</span>
+
+                eje = 0:step:1;
+                L = length(0:step:2 * pi);
+
+                eachCircle = 0:step:1;
+
+                circle = zeros(L, L);
+                circleBox = zeros(length(eachCircle), L, coeffMaxAmount);
+
+                centre = zeros(L, 1);
+                centreBox = zeros(L, coeffMaxAmount + 1); <span class="comment">% Para incluir el origen</span>
+
+                contourLine = zeros(L, 1);
+
+                <span class="keyword">for</span> coeff = minCoeff:coeffMaxAmount <span class="comment">% Una vez por coeficiente</span>
+                    t = t + 1;
+
+                    <span class="keyword">for</span> whole = 0:step:1 <span class="comment">% Una vuelta completa</span>
+                        cla
+                        whole_aux = round(whole / step + 1);
+                        texto = <span class="string">'N&uacute;mero de coeficientes: '</span> + string(t);
+                        text(0, height / 2, texto);
+
+                        <span class="comment">% Centros (y radios)</span>
+                        <span class="keyword">if</span> coeff ~= 1
+                            centre(whole_aux) = sheet(coeff - 1, 2) * exp(1i * (sheet(coeff - 1, 1) * 2 * pi * whole + sheet(coeff - 1, 3)));
+                            centreBox(:, coeff) = centre + centreBox(:, coeff - 1);
+                        <span class="keyword">else</span>
+                            centre(whole_aux) = 0;
+                        <span class="keyword">end</span>
+
+                        <span class="comment">% Circunferencias</span>
+                        <span class="keyword">for</span> eachCoeff = 1:coeff
+
+                            <span class="keyword">if</span> (eachCoeff == coeff) &amp;&amp; (eachCoeff ~= 1)
+                                circle = centreBox(whole_aux, eachCoeff - 1) + sheet(eachCoeff - 1, 2) * exp(1i * 2 * pi * eachCircle);
+                                circleBox(:, whole_aux, eachCoeff) = circle;
+                            <span class="keyword">end</span>
+
+                            plot(real(circleBox(round(eachCircle / step + 1), whole_aux, eachCoeff)), imag(circleBox(round(eachCircle / step + 1), whole_aux, eachCoeff)), <span class="string">'Color'</span>, <span class="string">'#0c821a'</span>)
+
+                        <span class="keyword">end</span>
+
+                        contourLine(whole_aux) = centreBox(whole_aux, coeff);
+
+                        plot(real(contourLine(1:whole_aux)), imag(contourLine(1:whole_aux)), <span class="string">'.'</span>, <span class="string">'Color'</span>, <span class="string">'red'</span>) <span class="comment">% Centro de la &uacute;ltima circunferencia</span>
+                        plot(real(centreBox(whole_aux, 1:coeff - 1)), imag(centreBox(whole_aux, 1:coeff - 1)), <span class="string">'.'</span>, <span class="string">'Color'</span>, <span class="string">'blue'</span>) <span class="comment">% Resto de centros</span>
+                        plot(real(centreBox(whole_aux, 1:coeff)), imag(centreBox(whole_aux, 1:coeff)), <span class="string">'Color'</span>, <span class="string">'black'</span>) <span class="comment">% Radios</span>
+
+                        <span class="comment">% Capturar gr&aacute;fico y escribir en archivo</span>
+                        frame = getframe(gcf);
+                        writeVideo(v, frame);
+
+                    <span class="keyword">end</span>
+
+                <span class="keyword">end</span>
+
+                close(v);
+</pre><pre class="codeinput">        <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><pre class="codeoutput error">SWITCH expression must be a scalar or a character vector.
+
+Error in Dibujos_con_FFT (line 36)
+switch STATE
+</pre><h2 id="11">IRQs</h2><pre class="codeinput"><span class="comment">% Sliders</span>
+
+<span class="keyword">function</span> sld_irq (sld, fig)
+    <span class="keyword">global</span> TH LEFT aux0 INVERTED
+    TH = sld.Value;
+
+    <span class="keyword">if</span> INVERTED
+        aux0 = LEFT &lt; TH;
+    <span class="keyword">else</span>
+        aux0 = LEFT &gt; TH;
+    <span class="keyword">end</span>
+
+    aux0 = imfill(aux0, <span class="string">'holes'</span>);
+    showImages(fig);
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> sld_1_irq(sld, height, fig)
+    <span class="keyword">global</span> aux1
+    resetImages();
+    aux1(:) = 0;
+
+    <span class="keyword">if</span> (sld.Value ~= height)
+        aux1(round(height * (1 - sld.Value / 100)) + 1:height, :) = 1;
+    <span class="keyword">end</span>
+
+    showImages(fig);
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> sld_2_irq(sld, height, fig)
+    <span class="keyword">global</span> aux2
+    resetImages();
+    aux2(:) = 0;
+
+    <span class="keyword">if</span> (sld.Value ~= height)
+        aux2(1:round(height * sld.Value / 100), :) = 1;
+    <span class="keyword">end</span>
+
+    showImages(fig);
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> sld_3_irq(sld, width, fig)
+    <span class="keyword">global</span> aux3
+    resetImages();
+    aux3(:) = 0;
+
+    <span class="keyword">if</span> (sld.Value ~= width)
+        aux3(:, 1:round(width * sld.Value / 100)) = 1;
+    <span class="keyword">end</span>
+
+    showImages(fig);
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> sld_4_irq(sld, width, fig)
+    <span class="keyword">global</span> aux4
+    resetImages();
+    aux4(:) = 0;
+
+    <span class="keyword">if</span> (sld.Value ~= width)
+        aux4(:, round(width * (1 - sld.Value / 100)) + 1:width) = 1;
+    <span class="keyword">end</span>
+
+    showImages(fig);
+<span class="keyword">end</span>
+
+<span class="comment">% Buttons</span>
+
+<span class="keyword">function</span> btn_details_irq(fig)
+    <span class="keyword">global</span> STATE
+    STATE = <span class="string">'DETAILS'</span>;
+    close(fig);
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> btn_contour_irq(fig)
+    <span class="keyword">global</span> STATE
+    STATE = <span class="string">'CONTOUR'</span>;
+    close(fig);
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> btn_exit_irq(fig)
+    close(fig);
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> btn_start_irq(fig_contour)
+    <span class="keyword">global</span> STATE
+    STATE = <span class="string">'CONTOUR_START'</span>;
+    close(fig_contour)
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> btn_inverted_irq(fig)
+    <span class="keyword">global</span> INVERTED aux0
+    INVERTED = ~INVERTED;
+    aux0 = ~aux0;
+    showImages(fig);
+<span class="keyword">end</span>
+</pre><h2 id="12">Other functions</h2><pre class="codeinput"><span class="keyword">function</span> showImages(fig)
+    <span class="keyword">global</span> LEFT RIGHT aux0 aux1 aux2 aux3 aux4
+    RIGHT = aux0 | aux1 | aux2 | aux3 | aux4;
+    RIGHT = imfill(RIGHT, <span class="string">'holes'</span>);
+    clf(fig)
+    subplot(121)
+    imshow(LEFT)
+    title(<span class="string">'Imagen original'</span>)
+    subplot(122)
+    imshow(RIGHT)
+    title(<span class="string">'Imagen rellena'</span>)
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> resetImages()
+    <span class="keyword">global</span> I LEFT RIGHT
+    LEFT = I .* uint8((I | RIGHT));
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> LEFT = sortCoeff(sheet)
+    LEFT = sheet;
+
+    <span class="keyword">for</span> n = 1:length(sheet(:, 1))
+        index = sheet(n, 1);
+
+        <span class="keyword">if</span> index &gt; 0
+            index = 2 * index - 1;
+        <span class="keyword">elseif</span> index &lt; 0
+            index = 2 * abs(index);
+        <span class="keyword">end</span>
+
+        LEFT(index + 1, :) = sheet(n, :);
+    <span class="keyword">end</span>
+
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Preámbulo
+clear
+clc
+close all force
+
+global STATE TH LEFT RIGHT aux0 aux1 aux2 aux3 aux4 I INVERTED
+
+step = 0.05;
+coeffMaxAmount = 50;
+minCoeff = 1;
+
+%% Menú de inicio
+fig_inicio = uifigure('Position', ([810 390 320 90]));
+
+% TEXT
+lbl = uilabel(fig_inicio, 'Position', [20 50 300 30], ...
+    'Text', '¡Bienvenido! Escoge el método que desees aplicar.');
+lbl.WordWrap = 'on';
+
+% BUTTONS
+btn_details = uibutton(fig_inicio, 'Text', 'Detalles', ...
+    'Position', [20, 15, 75, 22], ...
+    'ButtonPushedFcn', @(btn, event) btn_details_irq(fig_inicio));
+btn_contour = uibutton(fig_inicio, 'Text', 'Contorno', ...
+    'Position', [110, 15, 75, 22], ...
+    'ButtonPushedFcn', @(btn, event) btn_contour_irq(fig_inicio));
+btn_exit = uibutton(fig_inicio, 'Text', 'Salir', ...
+    'Position', [220, 15, 75, 22], ...
+    'ButtonPushedFcn', @(btn, event) btn_exit_irq(fig_inicio));
+
+% Waiting...
+waitfor(fig_inicio)
+
+%% Escoger acción principal
+
+switch STATE
+    case 'DETAILS'
+    case 'CONTOUR'
+        INVERTED = false;
+        TH = 127;
+        STATE = 0;
+        %%
+        % 
+        % $$e^{\pi i} + 1 = 0$$
+        % 
+
+        File = ['Images/' uigetfile('Images/*.jpg')];
+        File(end-4:end);
+        I = rgb2gray(imread(File));
+        LEFT = I;
+        width = length(I(1, :));
+        height = length(I(:, 1));
+        RIGHT = I > TH;
+        RIGHT = imfill(RIGHT, 'holes');
+        aux0 = RIGHT;
+        aux1 = zeros(height, width);
+        aux2 = zeros(height, width);
+        aux3 = zeros(height, width);
+        aux4 = zeros(height, width);
+
+        fig_contour = figure('Position', ([200 200 1400 500]));
+        showImages(fig_contour);
+
+        %% UI
+        h = uifigure('Position', ([700 700 550 250]));
+
+        % SLIDERS
+        % TH
+        sld = uislider(h, 'Position', [15, 45, 200, 3], ...
+            'ValueChangingFcn', @(sld, event) sld_irq(event, fig_contour));
+        sld.Limits = [0 255];
+        sld.Value = 127;
+        % White Bars
+        sld_1 = uislider(h, 'Position', [200, 200, 300, 3], ...
+            'ValueChangingFcn', @(sld, event) sld_1_irq(event, height, fig_contour));
+        sld_2 = uislider(h, 'Position', [200, 170, 300, 3], ...
+            'ValueChangingFcn', @(sld, event) sld_2_irq(event, height, fig_contour));
+        sld_3 = uislider(h, 'Position', [200, 140, 300, 3], ...
+            'ValueChangingFcn', @(sld, event) sld_3_irq(event, width, fig_contour));
+        sld_4 = uislider(h, 'Position', [200, 110, 300, 3], ...
+            'ValueChangingFcn', @(sld, event) sld_4_irq(event, width, fig_contour));
+
+        sld_1.Value = 0; sld_1.Limits = [0 100];
+        sld_2.Value = 0; sld_2.Limits = [0 100];
+        sld_3.Value = 0; sld_3.Limits = [0 100];
+        sld_4.Value = 0; sld_4.Limits = [0 100];
+
+        % TEXT
+        lbl = uilabel(h, 'Position', [245 25 180 30], ...
+            'Text', 'La imagen rellena no debe tener huecos de color negro');
+        lbl.WordWrap = 'on';
+
+        % BUTTONS
+        btn_start = uibutton(h, 'Text', 'Empezar', ...
+            'Position', [435, 30, 100, 22], ...
+            'ButtonPushedFcn', @(btn, event) btn_start_irq(fig_contour));
+        btn_inverted = uibutton(h, 'Text', 'Invertir', ...
+            'Position', [30, 150, 100, 22], ...
+            'ButtonPushedFcn', @(btn, event) btn_inverted_irq(fig_contour));
+
+        % Waiting...
+        waitfor(fig_contour)
+        close(h)
+
+        % Second Switch Statement
+        switch STATE
+            case 'CONTOUR_START'
+                C = cell2mat(bwboundaries(RIGHT));
+
+                eachCircle = C(:, 2);
+                y = C(:, 1);
+
+                M = (width / 2 - eachCircle) + 1i * (height / 2 - y);
+                r = 1:length(abs(M));
+                figure
+                plot(r, real(M), '.', 'Color', 'black')
+                hold on
+                plot(r, imag(M), '.', 'Color', 'red')
+                hold off
+                title('Parte real e imaginaria')
+                axis equal
+
+                H = fftshift(fft(M));
+                L = length(H);
+                H = H / L;
+
+                figure
+                plot(abs(H))
+                title('FFT shifted')
+
+                if mod(L, 2) == 1
+                    K = (1:L)' - L / 2 - 1/2;
+                else
+                    K = (1:L)' - L / 2 - 1;
+                end
+
+                sheet = [K, abs(H), angle(H)];
+                sheet = sortCoeff(sheet);
+                File = File(1:end - 4);
+                writematrix(sheet, strcat(File, '.xls'))
+
+                %% Representación y generación del vídeo
+                p = figure;
+                set(gcf, 'Position', [0 0 1080 1920])
+                hold on; grid on; box on; axis equal
+                set(gca, 'xlim', [-width * 0.6 width * 0.6], 'ylim', [-height * 0.6 height * 0.6])
+                % Create and open video writer object
+                v = VideoWriter('tercera_prueba.mp4', 'MPEG-4');
+                v.Quality = 100;
+                v.FrameRate = 120;
+                open(v);
+                t = 0;
+                aux = 0;
+
+                % Allocating memory for saved data
+
+                eje = 0:step:1;
+                L = length(0:step:2 * pi);
+
+                eachCircle = 0:step:1;
+
+                circle = zeros(L, L);
+                circleBox = zeros(length(eachCircle), L, coeffMaxAmount);
+
+                centre = zeros(L, 1);
+                centreBox = zeros(L, coeffMaxAmount + 1); % Para incluir el origen
+
+                contourLine = zeros(L, 1);
+
+                for coeff = minCoeff:coeffMaxAmount % Una vez por coeficiente
+                    t = t + 1;
+
+                    for whole = 0:step:1 % Una vuelta completa
+                        cla
+                        whole_aux = round(whole / step + 1);
+                        texto = 'Número de coeficientes: ' + string(t);
+                        text(0, height / 2, texto);
+
+                        % Centros (y radios)
+                        if coeff ~= 1
+                            centre(whole_aux) = sheet(coeff - 1, 2) * exp(1i * (sheet(coeff - 1, 1) * 2 * pi * whole + sheet(coeff - 1, 3)));
+                            centreBox(:, coeff) = centre + centreBox(:, coeff - 1);
+                        else
+                            centre(whole_aux) = 0;
+                        end
+
+                        % Circunferencias
+                        for eachCoeff = 1:coeff
+
+                            if (eachCoeff == coeff) && (eachCoeff ~= 1)
+                                circle = centreBox(whole_aux, eachCoeff - 1) + sheet(eachCoeff - 1, 2) * exp(1i * 2 * pi * eachCircle);
+                                circleBox(:, whole_aux, eachCoeff) = circle;
+                            end
+
+                            plot(real(circleBox(round(eachCircle / step + 1), whole_aux, eachCoeff)), imag(circleBox(round(eachCircle / step + 1), whole_aux, eachCoeff)), 'Color', '#0c821a')
+
+                        end
+
+                        contourLine(whole_aux) = centreBox(whole_aux, coeff);
+
+                        plot(real(contourLine(1:whole_aux)), imag(contourLine(1:whole_aux)), '.', 'Color', 'red') % Centro de la última circunferencia
+                        plot(real(centreBox(whole_aux, 1:coeff - 1)), imag(centreBox(whole_aux, 1:coeff - 1)), '.', 'Color', 'blue') % Resto de centros
+                        plot(real(centreBox(whole_aux, 1:coeff)), imag(centreBox(whole_aux, 1:coeff)), 'Color', 'black') % Radios
+
+                        % Capturar gráfico y escribir en archivo
+                        frame = getframe(gcf);
+                        writeVideo(v, frame);
+
+                    end
+
+                end
+
+                close(v);
+        end
+
+end
+
+%% IRQs
+
+% Sliders
+
+function sld_irq (sld, fig)
+    global TH LEFT aux0 INVERTED
+    TH = sld.Value;
+
+    if INVERTED
+        aux0 = LEFT < TH;
+    else
+        aux0 = LEFT > TH;
+    end
+
+    aux0 = imfill(aux0, 'holes');
+    showImages(fig);
+end
+
+function sld_1_irq(sld, height, fig)
+    global aux1
+    resetImages();
+    aux1(:) = 0;
+
+    if (sld.Value ~= height)
+        aux1(round(height * (1 - sld.Value / 100)) + 1:height, :) = 1;
+    end
+
+    showImages(fig);
+end
+
+function sld_2_irq(sld, height, fig)
+    global aux2
+    resetImages();
+    aux2(:) = 0;
+
+    if (sld.Value ~= height)
+        aux2(1:round(height * sld.Value / 100), :) = 1;
+    end
+
+    showImages(fig);
+end
+
+function sld_3_irq(sld, width, fig)
+    global aux3
+    resetImages();
+    aux3(:) = 0;
+
+    if (sld.Value ~= width)
+        aux3(:, 1:round(width * sld.Value / 100)) = 1;
+    end
+
+    showImages(fig);
+end
+
+function sld_4_irq(sld, width, fig)
+    global aux4
+    resetImages();
+    aux4(:) = 0;
+
+    if (sld.Value ~= width)
+        aux4(:, round(width * (1 - sld.Value / 100)) + 1:width) = 1;
+    end
+
+    showImages(fig);
+end
+
+% Buttons
+
+function btn_details_irq(fig)
+    global STATE
+    STATE = 'DETAILS';
+    close(fig);
+end
+
+function btn_contour_irq(fig)
+    global STATE
+    STATE = 'CONTOUR';
+    close(fig);
+end
+
+function btn_exit_irq(fig)
+    close(fig);
+end
+
+function btn_start_irq(fig_contour)
+    global STATE
+    STATE = 'CONTOUR_START';
+    close(fig_contour)
+end
+
+function btn_inverted_irq(fig)
+    global INVERTED aux0
+    INVERTED = ~INVERTED;
+    aux0 = ~aux0;
+    showImages(fig);
+end
+
+%% Other functions
+function showImages(fig)
+    global LEFT RIGHT aux0 aux1 aux2 aux3 aux4
+    RIGHT = aux0 | aux1 | aux2 | aux3 | aux4;
+    RIGHT = imfill(RIGHT, 'holes');
+    clf(fig)
+    subplot(121)
+    imshow(LEFT)
+    title('Imagen original')
+    subplot(122)
+    imshow(RIGHT)
+    title('Imagen rellena')
+end
+
+function resetImages()
+    global I LEFT RIGHT
+    LEFT = I .* uint8((I | RIGHT));
+end
+
+function LEFT = sortCoeff(sheet)
+    LEFT = sheet;
+
+    for n = 1:length(sheet(:, 1))
+        index = sheet(n, 1);
+
+        if index > 0
+            index = 2 * index - 1;
+        elseif index < 0
+            index = 2 * abs(index);
+        end
+
+        LEFT(index + 1, :) = sheet(n, :);
+    end
+
+end
+
+##### SOURCE END #####
+--></body></html>
