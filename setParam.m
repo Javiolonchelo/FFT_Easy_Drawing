@@ -2,7 +2,7 @@ function [step, minCoeff, maxCoeff, loop, zoom, CENTERED, videoName, ...
     CREATE_VIDEO] = setParam()
 global t_zoom t_videoName STATE
 
-STATE = '';
+STATE = 'CANCEL REPRESENTATION';
 videoName = '';
 
 % Creación de una nueva figura
@@ -66,13 +66,14 @@ while true
             loop      = str2double(t_loop.Value());
             CENTERED  = ~btn_centered.Value();
             CREATE_VIDEO = btn_video.Value();
+            
+            close(fig);
             break
+            
         case 'CANCEL REPRESENTATION'
             break
     end
 end
-
-close(fig);
 
 end
 
@@ -120,9 +121,7 @@ end
 end
 
 function btn_cancel_irq(fig)
-global STATE
-STATE = 'CANCEL REPRESENTATION';
-uiresume(fig);
+close(fig);
 end
 
 function btn_start_irq(fig)

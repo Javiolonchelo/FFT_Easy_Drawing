@@ -29,39 +29,41 @@ La FFT (_Fast Fourier Transform_) es un algoritmo que implementa la DFT (_Discre
 
 El funcionamiento es más sencillo de lo que puede parecer (lo prometo).
 
-Al realizar la FFT, tomamos N muestras complejas y obtenemos otras N muestras complejas. De estos, el **módulo** representa el radio de la circunferencia, su **frecuencia** es la frecuencia de giro (puede ser en sentido horario o antihorario) y su **fase** es la fase inicial del giro.
+Al realizar la FFT, tomamos N muestras complejas y obtenemos otras N muestras complejas. De estos, el **módulo** representa el radio de la circunferencia, su **frecuencia** es la frecuencia de giro (puede ser positiva o negativa, lo que se traduce en sentido horario o antihorario) y su **fase** es la fase inicial del giro.
 
 Si consideramos una línea continua y cerrada (por ejemplo, la silueta de la imagen), sus coordenadas cartesianas (x,y) pueden ser consideradas como las partes real e imaginaria, respectivamente, de un número complejo.
 
 Por lo tanto, para obtener los radios, las frecuencias de giro y las fases iniciales, solo debemos realizar la siguiente operación:
 
-![z[k] = \text{FFT}^N\Big\lbrace x[n] + i \cdot y[n]\Big\rbrace , , \qquad k = 0, 1, \ldots , N-1](formula_01.png)
+![[z[k] = \text{FFT}^N\Big\lbrace x[n] + i \cdot y[n]\Big\rbrace , , \qquad k = 0, 1, \ldots , N-1]](formula_01.png)
 
 ## Implementación en _software_
 
-En MATLAB será algo así como:
+La implementación de la fórmula anterior reside en las líneas 16 a 34 del fichero `calcContour.m`:
 
 ```matlab
-% Obtención de coordenadas a partir de la matriz de coordenadas 'C'
-x = C(:,1);
-y = C(:,2);
+% Obtención de las coordenadas y centrado de imagen en el origen.
+x = width / 2 - extractedContour(:, 2);
+y = height / 2 - extractedContour(:, 1);
 
-% Cálculo de la FFT, resultado comprendido entre [-pi, pi]
-z_k = fftshift(fft(x + 1i*y));
+% Cálculo de la FFT, resultado entre -pi y pi.
+z_k = fftshift(fft(x + 1i * y));
+
+% Número de muestras de la FFT.
 L = length(z_k);
 
-% Para ordenar los parámetros según la sucesión de frecuencias:
-% k = 0, 1, -1, 2, -2, ...
-if mod(L, 2) == 1
-    frecuencias = (1:L)' - L / 2 - 1/2;
-else
-    frecuencias = (1:L)' - L / 2 - 1;
-end
+% Escalado que implica matemáticamente la FFT.
+z_k = z_k / L;
 
-% Obtención de parámetros
-radios  = abs(z_k);
-fases   = angle(z_k);
+% Generación de índices, depende de si 'fftLength' es par o impar.
+if mod(L, 2) == 1
+    indexes = (1:L)' - L / 2 - 1/2;
+else
+    indexes = (1:L)' - L / 2 - 1;
+end
 ```
+
+El resto del código es para leer las imágenes, ajustarlas, crear interfaces de usuario y generar un archivo de vídeo. Todo ello hace que este programa sea relativamente agradable de usar.
 
 ### Requisitos
 

@@ -6,6 +6,8 @@ function calcContour(I)
 [step, minCoeff, maxCoeff, loop, zoom, CENTERED, videoName, ...
     CREATE_VIDEO] = setParam();
 
+biggerStep = step*10;
+
 extractedContour = cell2mat(bwboundaries(I));
 
 width = length(I(1, :));
@@ -16,23 +18,23 @@ x = width / 2 - extractedContour(:, 2);
 y = height / 2 - extractedContour(:, 1);
 
 % Cálculo de la FFT, resultado entre -pi y pi.
-complexEquiv = fftshift(fft(x + 1i * y));
+z_k = fftshift(fft(x + 1i * y));
 
 % Número de muestras de la FFT.
-fftLength = length(complexEquiv);
+L = length(z_k);
 
-% Escalado (por la fórmula).
-complexEquiv = complexEquiv / fftLength;
+% Escalado que implica matemáticamente la FFT.
+z_k = z_k / L;
 
 % Generación de índices, depende de si 'fftLength' es par o impar.
-if mod(fftLength, 2) == 1
-    indexes = (1:fftLength)' - fftLength / 2 - 1/2;
+if mod(L, 2) == 1
+    indexes = (1:L)' - L / 2 - 1/2;
 else
-    indexes = (1:fftLength)' - fftLength / 2 - 1;
+    indexes = (1:L)' - L / 2 - 1;
 end
 
 % Almacenamiento de los resultados ordenados, en la variable 'sheet'.
-sheet = sortCoeff([indexes, abs(complexEquiv), angle(complexEquiv)]);
+sheet = sortCoeff([indexes, abs(z_k), angle(z_k)]);
 % writematrix(sheet, strcat(filename, '.xls'))
 
 %% Representación y generación del vídeo
@@ -46,7 +48,8 @@ hold on; box on; axis equal
 % límites acorde a ello. De lo contrario, durante la ejecución irán
 % cambiando para centrarse en el pincel.
 if CENTERED
-    set(gca, 'xlim', [-width * 0.6, width * 0.6], 'ylim', [-height * 0.6, height * 0.6])
+    set(gca, 'xlim', [-width * 0.6, width * 0.6],                       ...
+        'ylim', [-height * 0.6, height * 0.6])
 end
 
 % Creamos el vídeo, si así se ha indicado previamente.
@@ -61,7 +64,7 @@ t = 0;
 
 % Prealojamiento de memoria para mejorar el rendimiento.
 resLength   = length(0 : step : 2*pi);
-eachCircle  = 0 : 10*step : 1;
+eachCircle  = 0 : biggerStep : 1;
 circleBox   = zeros(length(eachCircle), resLength, maxCoeff);
 centre      = zeros(resLength, 1);
 centreBox   = zeros(resLength, maxCoeff + 1); % Para incluir el origen
@@ -81,20 +84,26 @@ for coeff = 1:maxCoeff % Cada iteración es un nuevo coeficiente.
         
         % Centros (y radios)
         if coeff ~= 1
-            centre(whole_aux) = sheet(coeff - 1, 2) * exp(1i * (sheet(coeff - 1, 1) * 2 * pi * whole + sheet(coeff - 1, 3)));
+            centre(whole_aux) = sheet(coeff - 1, 2) * ...
+                exp(1i * (sheet(coeff - 1, 1) * 2 * pi * whole +        ...
+                sheet(coeff - 1, 3)));
             centreBox(:, coeff) = centre + centreBox(:, coeff - 1);
         else
-            centre(whole_aux) = 0;
+            centre(whole_aux) = 0; % El primer centro es el origen.
         end
         
         % Circunferencias
         for eachCoeff = 1:coeff
             if (eachCoeff == coeff) && (eachCoeff ~= 1)
-                circle = centreBox(whole_aux, eachCoeff - 1) + sheet(eachCoeff - 1, 2) * exp(1i * 2 * pi * eachCircle);
+                circle = centreBox(whole_aux, eachCoeff - 1) + ...
+                    sheet(eachCoeff - 1, 2) * exp(1i * 2 * pi * eachCircle);
                 circleBox(:, whole_aux, eachCoeff) = circle;
             end
             if minCoeff < coeff
-                plot(real(circleBox(round(eachCircle / (step*10) + 1), whole_aux, eachCoeff)), imag(circleBox(round(eachCircle / (step*10) + 1), whole_aux, eachCoeff)), 'Color', '#0c821a')
+                plot(real(circleBox(round(eachCircle / biggerStep + 1), ...
+                    whole_aux, eachCoeff)),                             ...
+                    imag(circleBox(round(eachCircle / biggerStep + 1),  ...
+                    whole_aux, eachCoeff)), 'Color', '#0c821a')
             end
         end
         
@@ -105,13 +114,26 @@ for coeff = 1:maxCoeff % Cada iteración es un nuevo coeficiente.
         % Si el coeficiente se encuentra entre los valores indicados para,
         % lleva a cabo la representación.
         if minCoeff < coeff
-            plot(real(contourLine(1:whole_aux)), imag(contourLine(1:whole_aux)), '.', 'Color', 'red') % Centro de la última circunferencia
-            plot(real(centreBox(whole_aux, 1:coeff - 1)), imag(centreBox(whole_aux, 1:coeff - 1)), '.', 'Color', 'blue') % Resto de centros
-            plot(real(centreBox(whole_aux, 1:coeff)), imag(centreBox(whole_aux, 1:coeff)), 'Color', 'black') % Radios
+            % Centro de la última circunferencia
+            plot(real(contourLine(1:whole_aux)),                        ...
+                imag(contourLine(1:whole_aux)), '.', 'Color', 'red') 
+                
+            % Resto de centros
+            plot(real(centreBox(whole_aux, 1:coeff - 1)),               ...
+                imag(centreBox(whole_aux, 1:coeff - 1)),                ...
+                '.', 'Color', 'blue')
+            
+            % Radios
+            plot(real(centreBox(whole_aux, 1:coeff)),                   ...
+                imag(centreBox(whole_aux, 1:coeff)), 'Color', 'black')
             
             % Capturar gráfico y escribir en archivo
             if ~CENTERED
-                set(gca, 'xlim', [real(contourLine(whole_aux)) - width * 0.6 / zoom, real(contourLine(whole_aux)) + width * 0.6 / zoom], 'ylim', [imag(contourLine(whole_aux)) + -height * 0.6 / zoom, imag(contourLine(whole_aux)) + height * 0.6 / zoom])
+                set(gca, 'xlim', [real(contourLine(whole_aux)) -        ...
+                    width * 0.6 / zoom, real(contourLine(whole_aux)) +  ...
+                    width * 0.6 / zoom], 'ylim',                        ...
+                    [imag(contourLine(whole_aux)) - height * 0.6 / zoom,...
+                    imag(contourLine(whole_aux)) + height * 0.6 / zoom])
             end
             if CREATE_VIDEO
                 writeVideo(video, getframe(gcf));
