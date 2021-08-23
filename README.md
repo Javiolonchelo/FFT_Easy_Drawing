@@ -16,6 +16,8 @@ Concretamente, el vídeo titulado [_But what is a Fourier series? From heat flow
 - [Conceptos teóricos](#conceptos-teóricos)
   - [¿Qué es la FFT?](#¿qué-es-la-fft)
   - [¿Cómo se dibuja usando la FFT?](#¿cómo-se-dibuja-usando-la-fft)
+- [Implementación en _software_](#implementación-en-software)
+  - [Dependencias](#dependencias)
 
 ## Conceptos teóricos
 
@@ -35,6 +37,8 @@ Por lo tanto, para obtener los radios, las frecuencias de giro y las fases inici
 
 ![z[k] = \text{FFT}^N\Big\lbrace x[n] + i \cdot y[n]\Big\rbrace , , \qquad k = 0, 1, \ldots , N-1](formula_01.png)
 
+## Implementación en _software_
+
 En MATLAB será algo así como:
 
 ```matlab
@@ -46,14 +50,26 @@ y = C(:,2);
 z_k = fftshift(fft(x + 1i*y));
 L = length(z_k);
 
+% Para ordenar los parámetros según la sucesión de frecuencias:
+% k = 0, 1, -1, 2, -2, ...
+if mod(L, 2) == 1
+    frecuencias = (1:L)' - L / 2 - 1/2;
+else
+    frecuencias = (1:L)' - L / 2 - 1;
+end
+
 % Obtención de parámetros
-radios       = abs(z_k);
-frecuencias  = (1:L) - L/2 - 1;
-fases        = angle(z_k);
+radios  = abs(z_k);
+fases   = angle(z_k);
 ```
 
-## Implementación en _software_
+### Requisitos
+
+Se aceptan las siguientes extensiones de imagen: `.jpg`, `.png`.
 
 ### Dependencias
 
-Solo es necesario tener instalado [MATLAB](https://es.mathworks.com/products/matlab.html) junto con su [Image Processing Toolbox](https://www.mathworks.com/products/image.html).
+Para que este script funcione correctamente, es necesario tener instalado [MATLAB](https://es.mathworks.com/products/matlab.html) junto con los siguientes packs de desarrollo:
+
+- [Image Processing Toolbox](https://www.mathworks.com/products/image.html)
+- [Curve Fitting Toolbox](https://es.mathworks.com/products/curvefitting.html)
