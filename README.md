@@ -25,6 +25,8 @@ Concretamente, el vídeo titulado [_But what is a Fourier series? From heat flow
 
 La FFT (_Fast Fourier Transform_) es un algoritmo que implementa la DFT (_Discrete Fourier Transform_) de manera optimizada para el cálculo computacional. A pesar de tener muchas versiones, la más famosa fue la que desarrollaron James Cooley y John Tukey en 1965, conocida como [algoritmo Cooley-Tukey](https://en.wikipedia.org/wiki/Cooley%E2%80%93Tukey_FFT_algorithm). Muchos consideran este algoritmo como uno de los más importantes en el mundo moderno.
 
+Si te interesa saber más, puedes leer lo que he escrito sobre la [Transformada de Fourier](TransformadaDeFourier.md).
+
 ### ¿Cómo se dibuja usando la FFT?
 
 El funcionamiento es más sencillo de lo que puede parecer (lo prometo).

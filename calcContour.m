@@ -1,17 +1,17 @@
-function calcContour(I)
-% Representa el contorno de la imagen 'I' que se encuentra en la ruta
+function calcContour(image)
+% Representa el contorno de la imagen 'image' que se encuentra en la ruta
 % indicada por 'filename'.
 
 % Obtención de los parámetros necesarios para la representación.
-[step, minCoeff, maxCoeff, loop, zoom, CENTERED, videoName, ...
-    CREATE_VIDEO] = setParam();
+[step, minCoeff, maxCoeff, loop, zoom, centered, videoName, ...
+    createVideo] = setParam();
 
 biggerStep = step*10;
 
-extractedContour = cell2mat(bwboundaries(I));
+extractedContour = cell2mat(bwboundaries(image));
 
-width = length(I(1, :));
-height = length(I(:, 1));
+width = length(image(1, :));
+height = length(image(:, 1));
 
 % Obtención de las coordenadas y centrado de imagen en el origen.
 x = width / 2 - extractedContour(:, 2);
@@ -47,13 +47,13 @@ hold on; box on; axis equal
 % Si se especifica que el vídeo esté centrado en el origen, ajusta los
 % límites acorde a ello. De lo contrario, durante la ejecución irán
 % cambiando para centrarse en el pincel.
-if CENTERED
+if centered
     set(gca, 'xlim', [-width * 0.6, width * 0.6],                       ...
         'ylim', [-height * 0.6, height * 0.6])
 end
 
 % Creamos el vídeo, si así se ha indicado previamente.
-if CREATE_VIDEO
+if createVideo
     video = VideoWriter(strcat(videoName,'.mp4'), 'MPEG-4');
     video.FrameRate = 60;
     open(video);
@@ -128,14 +128,14 @@ for coeff = 1:maxCoeff % Cada iteración es un nuevo coeficiente.
                 imag(centreBox(whole_aux, 1:coeff)), 'Color', 'black')
             
             % Capturar gráfico y escribir en archivo
-            if ~CENTERED
+            if ~centered
                 set(gca, 'xlim', [real(contourLine(whole_aux)) -        ...
                     width * 0.6 / zoom, real(contourLine(whole_aux)) +  ...
                     width * 0.6 / zoom], 'ylim',                        ...
                     [imag(contourLine(whole_aux)) - height * 0.6 / zoom,...
                     imag(contourLine(whole_aux)) + height * 0.6 / zoom])
             end
-            if CREATE_VIDEO
+            if createVideo
                 writeVideo(video, getframe(gcf));
             end
         end
@@ -146,7 +146,7 @@ for coeff = 1:maxCoeff % Cada iteración es un nuevo coeficiente.
     
 end
 
-if CREATE_VIDEO
+if createVideo
     close(video);
 end
 

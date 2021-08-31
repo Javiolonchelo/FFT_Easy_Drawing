@@ -1,8 +1,8 @@
 function [step, minCoeff, maxCoeff, loop, zoom, CENTERED, videoName, ...
     CREATE_VIDEO] = setParam()
-global t_zoom t_videoName STATE
+global t_zoom t_videoName state
 
-STATE = 'CANCEL REPRESENTATION';
+state = 'CANCEL REPRESENTATION';
 videoName = '';
 
 % Creación de una nueva figura
@@ -56,7 +56,7 @@ pause(1);
 
 while true
     uiwait(fig);
-    switch STATE
+    switch state
         case 'START REPRESENTATION'
             % Asignación de valores
             step      = str2double(t_step.Value());
@@ -125,7 +125,7 @@ close(fig);
 end
 
 function btn_start_irq(fig)
-global STATE
-STATE = 'START REPRESENTATION';
+global state
+state = 'START REPRESENTATION';
 uiresume(fig);
 end
