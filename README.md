@@ -77,3 +77,4 @@ Para que este script funcione correctamente, es necesario tener instalado [MATLA
 
 - [Image Processing Toolbox](https://www.mathworks.com/products/image.html)
 - [Curve Fitting Toolbox](https://es.mathworks.com/products/curvefitting.html)
+- [Symbolic Math Toolbox](https://es.mathworks.com/products/symbolic.html)

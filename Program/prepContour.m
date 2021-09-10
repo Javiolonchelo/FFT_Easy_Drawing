@@ -1,4 +1,4 @@
-function prepContour()
+function result = prepContour()
 global state threshold left aux0 aux1 aux2 aux3 aux4 image inverted
 
 inverted = false;
@@ -62,6 +62,8 @@ btn_inverted = uibutton(h, 'Text', 'Invertir', ...
 waitfor(fig_contour)
 close(h)
 
+result = aux0;
+
 clear threshold left aux0 aux1 aux2 aux3 aux4 image inverted
 end
 
@@ -77,7 +79,7 @@ else
     aux0 = left > threshold;
 end
 
-aux0 = imfill(aux0, 'holes');
+aux0 = imfill(aux0, 8, 'holes');
 showImages(fig);
 end
 

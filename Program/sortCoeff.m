@@ -1,7 +1,8 @@
-function sortedSheet = sortCoeff(sheet)
 % Teniendo como entrada una matriz de datos 'sheet', ordenamos los valores
 % en función del índice que alberga la primera columna.
 % El nuevo orden será $k = 0, 1, -1, 2, -2, \ldots$
+
+function sortedSheet = sortCoeff(sheet)
 
 sortedSheet = zeros(size(sheet));
 

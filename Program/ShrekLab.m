@@ -12,11 +12,9 @@ startMenu();
 switch state
     case 'DETAILS'
     case 'CONTOUR'
-        prepContour();
+        image = prepContour();
         switch state
             case 'CONTOUR_START'
-                image = prepImageForContour();
                 calcContour(image);
-        end
-        
+        end        
 end
